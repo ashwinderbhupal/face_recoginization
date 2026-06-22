@@ -1,0 +1,24 @@
+# Core dependencies
+insightface
+opencv-python
+numpy
+
+# Web / desktop UI (webapp/)
+flask
+# Optional: native desktop-app window. If missing, app_desktop.py falls back
+# to opening the UI in your default browser.
+pywebview
+
+# --- ONNX Runtime: pick ONE ---
+# CPU only (works everywhere):
+#   pip install onnxruntime
+#
+# NVIDIA GPU (CUDA) - much faster, what this machine uses:
+#   pip install onnxruntime-gpu nvidia-cuda-runtime-cu12 nvidia-cudnn-cu12 \
+#       nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12
+onnxruntime-gpu
+nvidia-cuda-runtime-cu12
+nvidia-cudnn-cu12
+nvidia-cublas-cu12
+nvidia-cufft-cu12
+nvidia-curand-cu12

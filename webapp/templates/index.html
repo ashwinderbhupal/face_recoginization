@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FaceWatch — Recognition Console</title>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">F</div>
+      <div><b>FaceWatch</b><small>Recognition console</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-sec="dashboard" class="active"><span class="ic">▣</span> Dashboard</a>
+      <a data-sec="people"><span class="ic">☻</span> People</a>
+      <a data-sec="events"><span class="ic">≡</span> Events</a>
+      <a data-sec="enroll"><span class="ic">＋</span> Enroll</a>
+      <a data-sec="settings"><span class="ic">⚙</span> Settings</a>
+    </nav>
+    <div class="foot">
+      <div><span class="statusdot" id="sideDot"></span><span id="sideStatus">offline</span></div>
+      <div style="margin-top:6px" id="sideSrc">no source</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="sub" id="pageSub">Live recognition & analytics</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <span class="chip"><span class="statusdot" id="topDot"></span><span id="topFps">0</span> FPS</span>
+        <span class="chip" id="topSrc">no source</span>
+      </div>
+    </div>
+
+    <div class="alertbanner" id="alertBanner">
+      <img id="alertImg" src="" alt="">
+      <div><b id="alertText">Alert</b><div class="muted" id="alertSub"></div></div>
+      <div class="spacer"></div>
+      <button class="x" onclick="document.getElementById('alertBanner').classList.remove('show')">✕</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="section active" id="sec-dashboard">
+      <div class="grid cols-4" style="margin-bottom:16px">
+        <div class="card kpi"><span class="v accent" id="kFaces">0</span><span class="l">Faces in view</span></div>
+        <div class="card kpi"><span class="v green" id="kKnown">0</span><span class="l">Known in view</span></div>
+        <div class="card kpi"><span class="v" id="kToday">0</span><span class="l">Sightings (24h)</span></div>
+        <div class="card kpi"><span class="v amber" id="kUnknown">0</span><span class="l">Unknown (24h)</span></div>
+      </div>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Live view</h3>
+          <div class="videobox">
+            <img id="feed" src="/api/video_feed" alt="">
+            <div class="vstats">
+              <span id="vFps">0 FPS</span><span id="vFaces">0 faces</span>
+            </div>
+          </div>
+          <div class="btn-row">
+            <select id="quickSrc" style="max-width:230px">
+              <option value="stream1" selected>Tapo CCTV — HD (stream1)</option>
+              <option value="0">Laptop webcam (0)</option>
+              <option value="stream2">Tapo CCTV — SD (stream2)</option>
+              <option value="">Stop camera</option>
+            </select>
+            <button class="btn" id="quickApply">Apply</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Live feed</h3>
+          <div class="feed" id="liveFeed"><div class="faint">Waiting for sightings…</div></div>
+        </div>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card"><h3>Sightings timeline (24h)</h3><canvas id="chartTimeline" height="150"></canvas></div>
+        <div class="card"><h3>Top people (24h)</h3><canvas id="chartPeople" height="150"></canvas></div>
+      </div>
+    </section>
+
+    <!-- PEOPLE -->
+    <section class="section" id="sec-people">
+      <div class="card">
+        <h3>Enrolled people</h3>
+        <div class="people" id="peopleGrid"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS -->
+    <section class="section" id="sec-events">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">Sighting history</h3>
+          <button class="btn sec sm" id="clearEvents">Clear history</button>
+        </div>
+        <table>
+          <thead><tr><th>Snap</th><th>Name</th><th>Confidence</th><th>Status</th><th>Source</th><th>Time</th></tr></thead>
+          <tbody id="eventsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ENROLL -->
+    <section class="section" id="sec-enroll">
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Capture from live camera</h3>
+          <label>Name</label>
+          <input type="text" id="enrollName" placeholder="e.g. Alice">
+          <div class="btn-row"><button class="btn" id="capBtn">Capture current face</button></div>
+          <p class="muted" style="font-size:12.5px;line-height:1.5">Grabs the largest face in the live frame. Capture 3–10 shots per person across angles for best accuracy.</p>
+        </div>
+        <div class="card">
+          <h3>Upload photos</h3>
+          <label>Name</label>
+          <input type="text" id="upName" placeholder="e.g. Alice">
+          <label>Images</label>
+          <input type="file" id="upFiles" accept="image/*" multiple>
+          <div class="btn-row"><button class="btn sec" id="upBtn">Upload &amp; enroll</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="section" id="sec-settings">
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Camera source</h3>
+          <label>Source</label>
+          <select id="setSrc">
+            <option value="stream1" selected>Tapo CCTV — HD (stream1)</option>
+            <option value="0">Laptop webcam (0)</option>
+            <option value="stream2">Tapo CCTV — SD (stream2)</option>
+            <option value="custom">Custom (index or rtsp URL)</option>
+            <option value="">Stop camera</option>
+          </select>
+          <div id="customWrap" style="display:none"><label>Custom source</label>
+            <input type="text" id="customSrc" placeholder="rtsp://user:pass@192.168.0.24:554/stream1"></div>
+          <div id="rtspWrap"><label>Tapo RTSP base (user:pass@ip)</label>
+            <input type="text" id="rtspBase" placeholder="admin001:bhupal001@192.168.0.24">
+            <p class="faint" style="font-size:12px;margin-top:6px">Stored only in your browser. Passwords are masked everywhere in the UI.</p></div>
+          <div class="btn-row"><button class="btn" id="setSrcApply">Apply source</button></div>
+        </div>
+        <div class="card">
+          <h3>Matching</h3>
+          <label>Threshold: <b id="thrVal">0.40</b> <span class="faint">(higher = stricter)</span></label>
+          <input type="range" id="thr" min="0.20" max="0.70" step="0.01" value="0.40">
+          <label class="switch"><input type="checkbox" id="recogOn" checked> Run recognition</label>
+        </div>
+        <div class="card">
+          <h3>Alerts</h3>
+          <label class="switch"><input type="checkbox" id="alUnknown"> Alert on Unknown faces</label>
+          <label>Alert when these people are seen</label>
+          <select id="alNames" multiple size="5"></select>
+          <label>Re-log cooldown (seconds): <b id="cdVal">8</b></label>
+          <input type="range" id="cooldown" min="1" max="60" step="1" value="8">
+          <div class="btn-row"><button class="btn" id="alApply">Save alert settings</button></div>
+        </div>
+        <div class="card">
+          <h3>Danger zone</h3>
+          <p class="muted" style="font-size:13px">Remove all enrolled faces from the recognition database. Photos on disk are kept.</p>
+          <div class="btn-row"><button class="btn danger" id="clearDb">Clear database</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Person modal -->
+<div class="modal" id="personModal">
+  <div class="box">
+    <div class="hd"><h3 id="pmName">Person</h3><button class="x" id="pmClose">✕</button></div>
+    <div class="bd">
+      <div class="muted" id="pmCounts"></div>
+      <div class="photogrid" id="pmPhotos"></div>
+      <label>Add photos</label>
+      <input type="file" id="pmFiles" accept="image/*" multiple>
+      <div class="btn-row">
+        <button class="btn sm" id="pmUpload">Upload &amp; enroll</button>
+        <button class="btn sec sm" id="pmRename">Rename</button>
+        <button class="btn danger sm" id="pmDelete">Delete person</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
